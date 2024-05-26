@@ -1,0 +1,32 @@
+name: "twitter-analyzer-api"
+
+services:
+  timescaleDB:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaleDB
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/timescaledb/data
+
+  app:
+    build: .
+    container_name: twitter-analyzer-api
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    depends_on:
+      - timescaleDB
+    healthcheck:
+        test: ["CMD-SHELL", "curl -f http://localhost:8000/health_check || exit 1"]
+        interval: 10s
+        timeout: 10s
+        retries: 5
+        start_period: 10s
+
+
+volumes:
+  db-data:
